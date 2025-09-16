@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jodx Rental — Rent per day ₹1000</title>
+  <style>
+    :root{--brand:#6c5ce7;--accent:#00b894;--bg:#f7f8fc;--card:#ffffff}
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); margin:0; color:#222}
+    header{background:linear-gradient(90deg,var(--brand),#4b4bd6); color:white; padding:28px 20px}
+    .container{max-width:1000px;margin:20px auto;padding:16px}
+    .hero{display:flex;gap:20px;align-items:center}
+    .hero h1{margin:0;font-size:28px}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(40,44,63,0.08)}
+    .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
+    label{display:block;font-size:14px;margin-bottom:6px}
+    input[type=text],input[type=email],input[type=number],input[type=date],select,textarea{width:100%;padding:10px 12px;border:1px solid #e6e9f2;border-radius:8px;font-size:14px}
+    .muted{color:#000000;font-size:13px}
+    .price-badge{background:rgba(255,255,255,0.06);padding:6px 10px;border-radius:999px;display:inline-block;margin-top:6px}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--brand);color:white}
+    .btn-ghost{background:transparent;border:1px solid #ddd}
+    .summary{position:sticky;top:22px}
+    .summary h3{margin-top:0}
+    .line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #eee}
+    .total{font-size:20px;font-weight:700}
+    footer{margin:26px 0;text-align:center;color:#666;font-size:13px}
+    @media(max-width:880px){.grid{grid-template-columns:1fr;}.summary{position:relative;top:auto}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container hero">
+      <div>
+        <h1>Rent Jodx</h1>
+        <p class="muted">Reliable Jodx rentals — ₹1,000 per day. Quick booking, flexible dates.</p>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div class="price-badge">Price per day <strong>₹1,000</strong></div>
+        <div class="muted" style="font-size:13px;margin-top:6px">Taxes & extras may apply at checkout</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <section class="card">
+        <h2 style="margin-top:0">Booking details</h2>
+        <form id="bookingForm">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label for="start">Start date</label>
+              <input type="date" id="start" required />
+            </div>
+            <div>
+              <label for="end">End date</label>
+              <input type="date" id="end" required />
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label for="qty">Nights</label>
+            <input type="number" id="qty" value="1" min="1" />
+          </div>
+
+          <hr style="margin:16px 0" />
+
+          <h3>Renter information</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label for="name">Full name</label>
+              <input type="text" id="name" placeholder="Your name" required />
+            </div>
+            <div>
+              <label for="phone">Phone</label>
+              <input type="text" id="phone" placeholder="+91 9XXXXXXXXX" required />
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@example.com" />
+          </div>
+
+          <div style="margin-top:12px">
+            <label for="notes">Notes (pickup time, address, etc.)</label>
+            <textarea id="notes" rows="3" placeholder="Any special requests..."></textarea>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <button class="btn btn-primary" type="submit">Get estimate & reserve</button>
+            <button class="btn btn-ghost" type="button" id="clearBtn">Reset</button>
+          </div>
+
+        </form>
+
+        <div id="message" style="margin-top:12px"></div>
+      </section>
+
+      <aside class="card summary">
+        <h3>Order summary</h3>
+        <div class="line"><div>Price / day</div><div>₹1,000</div></div>
+        <div class="line"><div>Days</div><div id="daysCount">—</div></div>
+        <div class="line"><div>Quantity</div><div id="qtySummary">1</div></div>
+        <div class="line"><div>Subtotal</div><div id="subtotal">₹0</div></div>
+        <div class="line"><div>Tax (GST 18%)</div><div id="tax">₹0</div></div>
+        <div class="line total"><div>Total</div><div id="total">₹0</div></div>
+
+        <div style="margin-top:12px">
+          <button class="btn btn-primary" id="downloadInvoice">Download invoice</button>
+        </div>
+
+        <hr style="margin:14px 0" />
+
+    </div>
+
+    <footer>
+      Need changes? Add features like promo codes, calendar availability, or an admin panel — tell me what you want.
+    </footer>
+  </main>
+
+  <script>
+    // Constants
+    const PRICE_PER_DAY = 1000; // ₹1000 per day
+    const GST_RATE = 0.18; // 18% GST
+
+    // Elements
+    const startEl = document.getElementById('start');
+    const endEl = document.getElementById('end');
+    const qtyEl = document.getElementById('qty');
+    const daysCountEl = document.getElementById('daysCount');
+    const subtotalEl = document.getElementById('subtotal');
+    const taxEl = document.getElementById('tax');
+    const totalEl = document.getElementById('total');
+    const qtySummaryEl = document.getElementById('qtySummary');
+    const form = document.getElementById('bookingForm');
+    const messageEl = document.getElementById('message');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadInvoiceBtn = document.getElementById('downloadInvoice');
+
+    function parseDateValue(v){ return v ? new Date(v + 'T00:00:00') : null; }
+
+    function compute(){
+      const s = parseDateValue(startEl.value);
+      const e = parseDateValue(endEl.value);
+      const qty = Math.max(1, parseInt(qtyEl.value || 1, 10));
+
+      let days = 0;
+      if(s && e){
+        // inclusive of start and end dates
+        const diff = (e - s) / (1000*60*60*24);
+        days = Math.floor(diff) + 1;
+        if(days < 1) days = 0;
+      }
+
+      const subtotal = days * qty * PRICE_PER_DAY;
+      const tax = Math.round(subtotal * GST_RATE);
+      const total = subtotal + tax;
+
+      daysCountEl.textContent = days || '—';
+      subtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
+      taxEl.textContent = '₹' + tax.toLocaleString('en-IN');
+      totalEl.textContent = '₹' + total.toLocaleString('en-IN');
+      qtySummaryEl.textContent = qty;
+
+      return {days, qty, subtotal, tax, total};
+    }
+
+    // Live recompute when inputs change
+    [startEl, endEl, qtyEl].forEach(el => el && el.addEventListener('input', compute));
+
+    form.addEventListener('submit', (e) =>{
+      e.preventDefault();
+      messageEl.innerHTML = '';
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+
+      const {days, qty, subtotal, tax, total} = compute();
+
+      if(!days || days <= 0){
+        messageEl.innerHTML = '<div style="color:#b00020">Please choose a valid date range (end date must be the same or after start date).</div>';
+        return;
+      }
+      if(!name || !phone){
+        messageEl.innerHTML = '<div style="color:#b00020">Please provide your name and phone number.</div>';
+        return;
+      }
+
+      // Simulate reservation save
+      const booking = {
+        name,nameLower: name.toLowerCase(), phone, email: document.getElementById('email').value,
+        start: startEl.value, end: endEl.value, days, qty, subtotal, tax, total, notes: document.getElementById('notes').value
+      };
+
+      // Display confirmation
+      messageEl.innerHTML = `<div style="padding:10px;border-radius:8px;background:#eef9f6;border:1px solid #ccefe0">Reservation ready — <strong>₹${total.toLocaleString('en-IN')}</strong>. We will contact you at <strong>${phone}</strong> to confirm pickup. (Demo only)</div>`;
+
+      // Optionally: save booking to localStorage for demo
+      const existing = JSON.parse(localStorage.getItem('jodx_bookings')||'[]');
+      existing.push(booking);
+      localStorage.setItem('jodx_bookings', JSON.stringify(existing, null, 2));
+    });
+
+    clearBtn.addEventListener('click', ()=>{
+      form.reset();
+      compute();
+      messageEl.innerHTML = '';
+    });
+
+    downloadInvoiceBtn.addEventListener('click', ()=>{
+      const {days, qty, subtotal, tax, total} = compute();
+      const name = document.getElementById('name').value || 'Customer';
+      const phone = document.getElementById('phone').value || '';
+
+      const invoice = [];
+      invoice.push('Jodx Rental — Invoice');
+      invoice.push('----------------------');
+      invoice.push('Name: ' + name);
+      invoice.push('Phone: ' + phone);
+      invoice.push('Period: ' + (document.getElementById('start').value || '-') + ' to ' + (document.getElementById('end').value || '-'));
+      invoice.push('Days: ' + days);
+      invoice.push('Quantity: ' + qty);
+      invoice.push('Price/day: ₹' + PRICE_PER_DAY);
+      invoice.push('Subtotal: ₹' + subtotal);
+      invoice.push('GST (18%): ₹' + tax);
+      invoice.push('Total: ₹' + total);
+      invoice.push('\nThank you for booking with us!');
+
+      const blob = new Blob([invoice.join('\n')], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'jodx-invoice.txt';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // Initialize
+    compute();
+  </script>
+</body>
+</html>
